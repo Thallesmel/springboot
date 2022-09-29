@@ -1,11 +1,15 @@
 package service;
 
 import java.util.List;
+import javax.validation.Valid;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import com.example.mochileiro.dto.UsuarioDto;
 import com.example.mochileiro.model.Usuario;
 import com.example.mochileiro.repository.IUsuario;
+import com.example.mochileiro.security.Token;
+import com.example.mochileiro.security.TokenUtil;
 
 @Service
 public class UsuarioService {
@@ -46,5 +50,16 @@ public class UsuarioService {
         String senha = repository.getById(usuario.getId()).getSenha();
         Boolean valid = passwordEncoder.matches(usuario.getSenha(), senha);
         return valid;
+    }
+
+    public Token gerarToken(@Valid UsuarioDto usuario) {
+        Usuario user = repository.findByNomeOrEmail(usuario.getNome(), usuario.getEmail());
+        if (user != null) {
+            Boolean valid = passwordEncoder.matches(usuario.getSenha(), user.getSenha());
+            if (valid) {
+                return new Token(TokenUtil.createToken(user));
+            }
+        }
+        return null;
     }
 }
